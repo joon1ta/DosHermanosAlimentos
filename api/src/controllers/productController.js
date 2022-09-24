@@ -2,20 +2,48 @@ import { productsService } from "../services/productServices.js"
 
 const productController = {
     getAll: async (req, res) => {
-        const allProducts = await productsService.getAll();
-        return res.status(200).json({
-            status: 200,
-            total: allProducts.length,
-            data: allProducts
-        })
+        try {
+            const allProducts = await productsService.getAll();
+            if (allProducts === null) {
+                return res.status(404).json({
+                    status: 404,
+                    message: "Producto no encontrado"
+                })
+            }
+            return res.status(200).json({
+                status: 200,
+                total: allProducts.length,
+                data: allProducts
+            })
+        } catch (error) {
+            return res.status(500).json({
+                status: 500,
+                message: "El servidor esta momentaneamente fuera de servicio"
+            })
+        }
+
+
     },
     getOne: async (req, res) => {
-        const { id } = req.params
-        const product = await productsService.getOne(id)
-        return res.status(200).json({
-            status: 200,
-            data: product
-        })
+        try {
+            const { id } = req.params
+            if (id) {
+                const product = await productsService.getOne(id)
+                if (product === null) {
+                    return res.status(404).json({
+                        status: 404,
+                        message: "Producto no encontrado"
+                    })
+                }
+                return res.status(200).json({
+                    status: 200,
+                    data: product
+                })
+            }
+        } catch (error) {
+            return error
+        }
+
     },
     create: async (req, res) => {
         const newProduct = { ...req.body }
@@ -24,11 +52,33 @@ const productController = {
             data: productStored
         })
     },
-    update: (req, res) => {
-        return res.send(`Actualizar producto con el id ${req.params.id}`)
+    update: async (req, res) => {
+        const { id } = req.params
+        const oldProduct = await productsService.getOne(id)
+        if (!oldProduct) {
+            return res.status(404).json({
+                status: 404,
+                message: "El Producto seleccionado no existe"
+            })
+        }
+        const updatedProduct = {
+            name: req.body.name ?? oldProduct.name
+        }
+        const response = await productsService.update(id, updatedProduct)
+        return res.status(200).json({
+            status: 200,
+            data: response
+        })
     },
-    delete: (req, res) => {
-        return res.send(`Borrar un producto con el id ${req.params.id}`)
+    delete: async (req, res) => {
+        const { id } = req.params
+        const response = await productsService.delete(id)
+        return res.status(200).json({
+            status: 200,
+            isDeleted: true,
+            data: response
+        })
+
     }
 }
 

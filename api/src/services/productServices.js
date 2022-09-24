@@ -2,16 +2,16 @@ import Product from "../models/ProductsModel.js";
 
 
 export const productsService = {
-    getAll: (options) => {
+    getAll: () => {
         try {
-            return Product.find({ ...options })
+            return Product.find({ isDeleted: true })
         } catch (error) {
             return error;
         }
     },
     getOne: (id) => {
         try {
-            return Product.find({ _id: id })
+            return Product.findOne({ _id: id })
         } catch (error) {
             return error;
         }
@@ -21,6 +21,24 @@ export const productsService = {
             return Product.create(newProduct)
         } catch (error) {
             return error
+        }
+    },
+    delete: (id) => {
+        try {
+            return Product.deleteOne({ id })
+        } catch (error) {
+
+        }
+    },
+    update: (id, newProductData) => {
+        try {
+            return Product.findByIdAndUpdate(
+                { _id: id },
+                { $set: { newProductData } },
+                { new: true }
+            )
+        } catch (error) {
+
         }
     }
 }
